@@ -1,0 +1,26 @@
+{
+  "name": "Bamazon-SQL",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HillNathan/Bamazon-SQL.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HillNathan/Bamazon-SQL/issues"
+  },
+  "homepage": "https://github.com/HillNathan/Bamazon-SQL#readme",
+  "dependencies": {
+    "cli-table": "^0.3.1",
+    "dotenv": "^8.0.0",
+    "inquirer": "^6.5.0",
+    "mysql": "^2.17.1"
+  }
+}
