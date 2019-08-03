@@ -56,13 +56,21 @@ const managerMenu = () => {
 }
 
 const viewProducts = () => {
-    console.log('View Products code')
-    managerMenu()
+    connection.query("SELECT * FROM products", 
+    function(err,res) {
+        if (err) throw err
+        managerDisplay(res)
+        managerMenu()
+    })    
 }
 
 const viewLowInventory = () => {
-    console.log('View Low Inventory')
-    managerMenu()
+    connection.query("SELECT * FROM products WHERE quantity < 5",
+    function(err,res) {
+        if (err) throw err
+        managerDisplay(res)
+        managerMenu()
+    }) 
 }
 
 const addInventory = () => {
@@ -73,4 +81,32 @@ const addInventory = () => {
 const addNewProduct = () => {
     console.log('Add New Product')
     managerMenu()
+}
+
+const managerDisplay = (productArray) => {
+    console.log('+----+-------------------------+--------+----------+')
+    console.log('| ID | PRODUCT NAME            | PRICE  | QUANTITY |')
+    console.log('+----+-------------------------+--------+----------+')
+    productArray.map(element => {
+        let outputString = '|'
+            if (element.item_id < 10) outputString += ` ${element.item_id}  | `
+            else outputString += ` ${element.item_id} | `
+        outputString += (element.product_name)
+        for (let i = outputString.length; i < 31; i++){
+            outputString += ' '
+        }
+        outputString += "| "
+        outputString += `$${element.price}`
+        for (let i = outputString.length; i < 40; i++){
+            outputString += ' '
+        }
+        outputString += '| '
+        outputString += `${element.quantity}`
+        for (let i = outputString.length; i < 51; i++){
+            outputString += ' '
+        }
+        outputString += '|'
+        console.log(outputString)
+    })
+    console.log('+----+-------------------------+--------+----------+')
 }
