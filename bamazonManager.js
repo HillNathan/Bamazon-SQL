@@ -7,7 +7,7 @@ const common = require("./common.js")
 const connection = mysql.createConnection({
     host: "localhost",
   
-    // Your port; if not 3306
+    // Your port; if not 3306   
     port: 3306,
   
     // Your username
@@ -18,6 +18,8 @@ const connection = mysql.createConnection({
     database: "bamazon"
 });
 
+const choiceArr = ['View Products for Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product', 'EXIT']
+
 connection.connect(function(err,res) {
     if (err) throw err
     else managerMenu()
@@ -27,29 +29,30 @@ const managerMenu = () => {
     inquirer.prompt ([
         {
             type: 'list',
-            choices: ['View Products for Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product', 'EXIT'],
+            choices: choiceArr,
             name: 'myChoice'
         }
     ]).then (response => {
         switch (response.myChoice) {
-            case 'View Products for Sale': 
+            case choiceArr[0]: 
                 viewProducts()
                 break
-            case 'View Low Inventory':
+            case choiceArr[1]:
                 viewLowInventory()
                 break
-            case 'Add to Inventory':
+            case choiceArr[2]:
                 addInventory()
                 break
-            case 'Add New Product':
+            case choiceArr[3]:
                 addNewProduct()
                 break
-            case 'EXIT':
+            case choiceArr[4]:
                 console.log("Goodbye!")
-                connection.end()
+                process.exit()
                 break
             default: 
                 console.log("Ooops.")
+
         }
     }).catch(err => {
         throw err
@@ -75,13 +78,89 @@ const viewLowInventory = () => {
 }
 
 const addInventory = () => {
-    console.log('Add to Inventory')
-    managerMenu()
+    connection.query("SELECT * FROM products", 
+    function(err,res) {
+        if (err) throw err
+        managerDisplay(res)
+        inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Please enter the product ID to add inventory:',
+            name: 'inventoryID',
+            validate: common.validateNum
+        },
+        {
+            type: 'input',
+            message: 'How much quantity are you adding? :',
+            name: 'newQuantity',
+            validate: common.validateNum
+        }
+    ]).then(response => {
+        connection.query("SELECT * FROM products WHERE ?",
+        {item_ID: response.inventoryID}, function(err,record) {
+            if (err) throw err
+            let newQTY = parseInt(record[0].quantity) + parseInt(response.newQuantity)
+            console.log('new quantity = ' + newQTY)
+            connection.query ("UPDATE products SET ? WHERE ?",
+                [{quantity: newQTY},{item_ID: response.inventoryID}],
+                function(err, invRes) {
+                    if (err) throw err
+                    console.log(`Quantity of ${record[0].product_name} updated to ${newQTY}`)
+                    managerMenu()
+                })
+            })
+        })   
+    })
 }
 
+
 const addNewProduct = () => {
-    console.log('Add New Product')
-    managerMenu()
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Enter Product Name',
+            name: 'product_name'
+        },
+        {
+            type: 'input',
+            message: 'Enter Product Department',
+            name: 'department'
+        },
+        {
+            type: 'input',
+            message: 'Enter Product Price',
+            name: 'price'
+        },
+        {
+            type: 'input',
+            message: 'Enter Product Quantity',
+            name: 'quantity'
+        }
+    ]).then(newProd => {
+        console.log('=====================================')
+        console.log(`Product Name: ${newProd.product_name}`)
+        console.log(`Product Department: ${newProd.department}`)
+        console.log(`Product Price: ${newProd.price}`)
+        console.log(`Product Quantity: ${newProd.quantity}`)
+        console.log('=====================================')
+        inquirer.prompt([
+            {
+                type: 'confirm',
+                message: 'Is this information correct?',
+                default: 'Yes',
+                name: 'confirmation'
+            }]).then(confirm => {
+                if (confirm.confirmation) {
+                    connection.query("INSERT INTO products SET ?",
+                    newProd, function(err,res) {
+                        if (err) throw err
+                        console.log (res.affectedRows + " items added.")
+                    })
+                managerMenu()
+                }
+            })
+    })
+    
 }
 
 const managerDisplay = (productArray) => {
