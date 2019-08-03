@@ -28,4 +28,31 @@ VALUES
 ('Tips for Clean Code', 'Books', 24, 26),
 ('XBox One', 'Electronics', 300, 9);
     
-select * from products WHERE quantity < 5
+select * from products WHERE quantity < 5;
+
+USE bamazon;
+ALTER TABLE products
+MODIFY COLUMN product_sales FLOAT;
+
+USE bamazon;
+CREATE TABLE departments (
+	department_id INT NOT NULL AUTO_INCREMENT,
+    department_name VARCHAR(20),
+    overhead_costs FLOAT,
+    PRIMARY KEY (department_ID)
+);
+
+INSERT INTO departments (department_name, overhead_costs)
+VALUES 
+('Electronics', 1000),
+('Office', 50), 
+('Travel', 300),
+('Games',125),
+('Home', 450),
+('Books', 90);
+
+SELECT * FROM departments;
+
+SELECT departments.department_ID, departments.department_name, departments.overhead_costs, SUM(products.products_sales) AS total_sales
+FROM departments JOIN products ON products.department = departments.department_name
+GROUP BY departments.department_name;

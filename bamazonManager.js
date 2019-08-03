@@ -35,24 +35,19 @@ const managerMenu = () => {
     ]).then (response => {
         switch (response.myChoice) {
             case choiceArr[0]: 
-                viewProducts()
-                break
+                return viewProducts()
             case choiceArr[1]:
-                viewLowInventory()
-                break
+                return viewLowInventory()
             case choiceArr[2]:
-                addInventory()
-                break
+                return addInventory()
             case choiceArr[3]:
-                addNewProduct()
-                break
+                return addNewProduct()
             case choiceArr[4]:
                 console.log("Goodbye!")
-                process.exit()
-                break
+                return process.exit()
             default: 
                 console.log("Ooops.")
-
+                return process.exit()
         }
     }).catch(err => {
         throw err

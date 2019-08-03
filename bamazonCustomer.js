@@ -88,7 +88,7 @@ const buyProduct = (prod_ID, quantity) => {
                 let newQty = record[0].quantity - quantity
                 let purchCost = quantity * record[0].price
                 connection.query("UPDATE products SET ? WHERE ?",
-                    [{quantity: newQty},{item_ID: prod_ID}],
+                    [{quantity: newQty, product_sales: purchCost },{item_ID: prod_ID}],
                      function(err,purchRes) {
                         if (err) throw err
                         console.log(`Your total for this purchase will be $${purchCost}.00.`)
