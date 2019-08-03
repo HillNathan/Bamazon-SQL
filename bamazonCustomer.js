@@ -2,6 +2,7 @@ const inquirer = require("inquirer")
 const mysql = require('mysql')
 require("dotenv").config()
 const keys = require("./keys.js")
+const common = require("./common.js")
 // include cli-table
 
 const connection = mysql.createConnection({
@@ -33,7 +34,7 @@ const start = () => {
                 type: 'input',
                 message: 'Please enter the Id of the product you want to buy:',
                 name: 'purchaseID',
-                validate: validateNum
+                validate: common.validateNum
             }]).then(firstResponse => {
                 if (parseInt(firstResponse.purchaseID) > 0) {
                     inquirer.prompt([
@@ -41,7 +42,7 @@ const start = () => {
                         type: 'input',
                         message: 'How many of this item do you wish to buy?',
                         name: 'purchaseQty',
-                        validate: validateNum
+                        validate: common.validateNum
                     }
                     ]).then(response => {
                         buyProduct(parseInt(firstResponse.purchaseID), parseInt(response.purchaseQty))
@@ -77,10 +78,6 @@ const displayProductList = (productArray) => {
     console.log('TYPE ID="0" TO EXIT')
 }
 
-const validateNum = (input) => {
-    var reg = /^\d+$/;
-    return reg.test(input) || "Input must be a number."
-}
 
 const buyProduct = (prod_ID, quantity) => {
     connection.query("SELECT * FROM products WHERE ?", 

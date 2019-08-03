@@ -2,6 +2,7 @@ const inquirer = require("inquirer")
 const mysql = require('mysql')
 require("dotenv").config()
 const keys = require("./keys.js")
+const common = require("./common.js")
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -110,3 +111,4 @@ const managerDisplay = (productArray) => {
     })
     console.log('+----+-------------------------+--------+----------+')
 }
+
