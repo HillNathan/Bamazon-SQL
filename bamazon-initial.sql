@@ -53,6 +53,7 @@ VALUES
 
 SELECT * FROM departments;
 
-SELECT departments.department_ID, departments.department_name, departments.overhead_costs, SUM(products.products_sales) AS total_sales
-FROM departments JOIN products ON products.department = departments.department_name
-GROUP BY departments.department_name;
+SELECT departments.department_ID, departments.department_name, departments.overhead_costs, 
+SUM(products.product_sales) AS total_sales, SUM(products.product_sales) - departments.overhead_costs AS total_profits
+FROM departments JOIN products ON products.department = departments.department_name 
+GROUP BY departments.department_name ORDER BY departments.department_ID;

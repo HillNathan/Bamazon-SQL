@@ -88,7 +88,7 @@ const addInventory = () => {
             type: 'input',
             message: 'How much quantity are you adding? :',
             name: 'newQuantity',
-            validate: common.validateNum
+            validate: common.validateNum    
         }
     ]).then(response => {
         connection.query("SELECT * FROM products WHERE ?",
