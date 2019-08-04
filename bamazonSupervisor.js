@@ -1,3 +1,4 @@
+// setting the environment
 const inquirer = require("inquirer")
 const mysql = require('mysql')
 require("dotenv").config()
@@ -14,22 +15,29 @@ const connection = mysql.createConnection({
     // Your username
     user: "root",
   
-    // Your password
+    // Your password - stored in .env file
     password: keys.mysql.password,
     database: "bamazon"
 });
 
-const choiceArr = ['View Product Sales by Department', 'Update Overhead Costs', 'Add New Department', 'EXIT']
+// array of choices for the inquirer menu, and for the associated switch case statement to parse that input
+const choiceArr = [ 'View Product Sales','View Product Sales by Department', 'Update Overhead Costs', 
+                    'Add New Department', 'EXIT']
 
+// check the database connection. 
 connection.connect(function(err,res) {
     if (err) throw err
+    // If we have a good connection, call the main menu function
     else supervisorMenu()
 })
 
+// Main menu function. 
 const supervisorMenu = () => {
+    // main menu header
     console.log('+=========================+')
     console.log('|     SUPERVISOR MENU     |')
     console.log('+=========================+')
+    // use the choice array to prompt from that list of options
     inquirer.prompt([
         {
             type: 'list',
@@ -38,14 +46,17 @@ const supervisorMenu = () => {
             name: 'choice'
         }
     ]).then(response => {
+        // use the choices array to parse the response, using switch case and calling functions for each option
         switch (response.choice) {
             case choiceArr[0] :
-                return displaySalesTable()
+                return viewProductSales()
             case choiceArr[1] :
-                return updateOverhead()
+                return displaySalesTable()
             case choiceArr[2] :
-                return addDepartment()
+                return updateOverhead()
             case choiceArr[3] :
+                return addDepartment()
+            case choiceArr[4] :
                 console.log("Goodbye!!!")
                 return process.exit()
             default:
@@ -56,16 +67,22 @@ const supervisorMenu = () => {
 }
 
 const displaySalesTable = () => {
+    // setting up the cli-table object with headers and column widths
     var table = new Table({
         head: ['Department ID', 'Department Name', 'Overhead Costs', 'Product Sales', 'Total Profit' ],
         colWidths: [15, 18, 17, 17, 17]
     })
+    // *THE* most complicated SQL query I have done so far. It joins the products and departments tables joining 
+    //   and then grouping by department name. The product sales for all items in the deparment are compiled into 
+    //   one value, and then a field is calculated to subtract the total income from the overhead costs to get a 
+    //   total profit number by department. The table is sorted by department ID to make it easier to display
     let myQuery = "SELECT departments.department_ID, departments.department_name, departments.overhead_costs, "
-                + "SUM(products.product_sales) AS total_sales, SUM(products.product_sales) - departments.overhead_costs AS total_profits "
-                + "FROM departments JOIN products ON products.department = departments.department_name "
+                + "SUM(products.product_sales) AS total_sales, SUM(products.product_sales) - departments.overhead_costs "
+                + "AS total_profits FROM departments JOIN products ON products.department = departments.department_name "
                 + "GROUP BY departments.department_name ORDER BY departments.department_ID;"
     connection.query(myQuery, function(err, res) {
         if (err) throw err
+        // push the column info to the table row in a map function
         let tableArray = []
         res.map(element => {
             tableArray.push(element.department_ID)
@@ -73,30 +90,38 @@ const displaySalesTable = () => {
             tableArray.push(element.overhead_costs)
             tableArray.push(element.total_sales)
             tableArray.push(element.total_profits)
+            // send the info to the cli-table Object, then clear the array for the next row
             table.push(tableArray)
             tableArray =[]
         })
+        // console log the table. 
         console.log(table.toString());
+        // go back to the main menu
         supervisorMenu()
     })   
 }
 
 const updateOverhead = () => {
+    // setting up the cli-table object with headers and column widths
     var table = new Table({
         head: ['Department ID', 'Department Name', 'Overhead Costs'],
         colWidths: [15, 18, 17]
     })
+    // pull the full departments table
     connection.query("SELECT * FROM departments", function(err,res) {
         if (err) throw err
+        // push the column info to the table row in a map function
         let tableArray = []
         res.map(element => {
             tableArray.push(element.department_id)
             tableArray.push(element.department_name)
             tableArray.push(element.overhead_costs)
+            // send the info to the cli-table Object, then clear the array for the next row
             table.push(tableArray)
             tableArray = []
-        })
+        })// console log the table.
         console.log(table.toString());
+        // prompt the user for the department they would like to update
         inquirer.prompt([
             {
                 type: 'input',
@@ -110,11 +135,14 @@ const updateOverhead = () => {
                 name: 'costs',
                 validate: common.validateNum
             }]).then (update => {
+                // run mySQL query to update the appropriate record with the new costs
                 connection.query("UPDATE departments SET ? WHERE ?", 
                 [{overhead_costs: update.costs},{department_id: update.dept}], 
                 function(err, results)  {
                     if (err) throw err
+                    // console log a confirmation message for the user
                     console.log(`Deparment ID ${update.dept} with overhead costs ${update.costs}.`)
+                    // go back to the main menu
                     supervisorMenu()
                 } )
             })
@@ -122,6 +150,7 @@ const updateOverhead = () => {
 }
 
 const addDepartment = () => {
+    // set up a prompt for the user to enter information about the new department
     console.log("\nADD A DEPARTMENT")
     inquirer.prompt([
         {
@@ -134,6 +163,7 @@ const addDepartment = () => {
             message: 'Enter Department Costs',
             name: 'overhead_costs'
         }]).then(newDept => {
+            // display the collected information, and ask the user to confirm the info
             console.log('===============================================')
             console.log(` Department Name: ${newDept.department_name}`)
             console.log(` Department Costs: ${newDept.overhead_costs}`)
@@ -145,14 +175,46 @@ const addDepartment = () => {
                     default: 'Yes',
                     name: 'confirmation'
                 }]).then(confirm => {
+                    // if we get a positive 
                     if (confirm.confirmation) {
+                        // run the mySQL query to add the new department to the departments table
                         connection.query("INSERT INTO departments SET ?",
                         newDept, function(err,res) {
                             if (err) throw err
+                            // console log a confirmation message
                             console.log (res.affectedRows + " departments added.")
-                            supervisorMenu()
                         })
                     }
+                    // go back to the main menu
+                    supervisorMenu()
                 })
         })
+}
+
+const viewProductSales = () => {
+    // set up the cli-table to display the sales information
+    let table = new Table({
+        // set table headers and column widths
+        head: ['Product Name', 'Department', 'Price', 'Num Sales', '$$ Sales'],
+        colWidths: [25,18,10,12,12]
+    })
+    // pull the full products table from the database
+    connection.query("SELECT * FROM products", function(err,res) {
+        let tableRow = []
+        // push the column info to the table row array in a map function
+        res.map(element => {
+            tableRow.push(element.product_name)
+            tableRow.push(element.department)
+            tableRow.push('$'+ element.price)
+            tableRow.push(element.num_sales)
+            tableRow.push('$'+ element.product_sales)
+            // send the info to the cli-table Object, then clear the array for the next row
+            table.push(tableRow)
+            tableRow =[] 
+        })
+        // display the table
+        console.log(table.toString());
+        // go back to the main menu
+        supervisorMenu()
+    })
 }
