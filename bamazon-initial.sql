@@ -57,3 +57,13 @@ SELECT departments.department_ID, departments.department_name, departments.overh
 SUM(products.product_sales) AS total_sales, SUM(products.product_sales) - departments.overhead_costs AS total_profits
 FROM departments JOIN products ON products.department = departments.department_name 
 GROUP BY departments.department_name ORDER BY departments.department_ID;
+
+USE bamazon;
+ALTER TABLE products
+MODIFY num_sales INT NOT NULL;
+ALTER TABLE products
+MODIFY product_sales FLOAT NOT NULL;
+
+USE bamazon;
+UPDATE products SET num_sales = 2 where item_id = 16;
+select * from products
