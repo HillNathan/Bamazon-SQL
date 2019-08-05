@@ -74,8 +74,13 @@ const viewLowInventory = () => {
     connection.query("SELECT * FROM products WHERE quantity < 5",
     function(err,res) {
         if (err) throw err
-        // call the display function, passing in the array of returned items
-        managerDisplay(res)
+        // if there are low inventory items, call the display function, passing in the array of returned items
+        if(res.length > 0) managerDisplay(res)
+        else {
+            console.log('+--------------------------------------------------+')
+            console.log('| THERE ARE NO PRODUCTS WITH INVENTORY LESS THAN 5 |')
+            console.log('+--------------------------------------------------+')
+        }
         managerMenu()
     }) 
 }
@@ -87,6 +92,7 @@ const addInventory = () => {
         if (err) throw err
         // call the display function passing in the array of returned items
         managerDisplay(res)
+        console.log('TYPE ID="0" TO EXIT')
         // ask the user for information about the product where inventory will be added, and how much
         inquirer.prompt([
         {
@@ -94,32 +100,37 @@ const addInventory = () => {
             message: 'Please enter the product ID to add inventory:',
             name: 'inventoryID',
             validate: common.validateNum
-        },
-        {
-            type: 'input',
-            message: 'How much quantity are you adding? :',
-            name: 'newQuantity',
-            validate: common.validateNum    
-        }
-        // process the response from the user
-    ]).then(response => {
-        // run a mySQL query to pull the record indicated by the user
-        connection.query("SELECT * FROM products WHERE ?",
-        {item_ID: response.inventoryID}, function(err,record) {
-            if (err) throw err
-            let newQTY = parseInt(record[0].quantity) + parseInt(response.newQuantity)
-            // run an update query to reflect the new inventory number
-            connection.query ("UPDATE products SET ? WHERE ?",
-                [{quantity: newQTY},{item_ID: response.inventoryID}],
-                function(err, invRes) {
-                    if (err) throw err
-                    // print a confirmation for the user
-                    console.log(`Quantity of ${record[0].product_name} updated to ${newQTY}`)
-                    // throw back to the main menu of the application
-                    managerMenu()
-                })
-            })
-        })   
+        }]).then(response => {
+            if (response.inventoryID > 0) {
+                inquirer.prompt([
+                    {
+                        type: 'input',
+                        message: 'How much quantity are you adding? :',
+                        name: 'newQuantity',
+                        validate: common.validateNum    
+                    }
+                    // process the response from the user
+                ]).then(response => {
+                    // run a mySQL query to pull the record indicated by the user
+                    connection.query("SELECT * FROM products WHERE ?",
+                    {item_ID: response.inventoryID}, function(err,record) {
+                        if (err) throw err
+                        let newQTY = parseInt(record[0].quantity) + parseInt(response.newQuantity)
+                        // run an update query to reflect the new inventory number
+                        connection.query ("UPDATE products SET ? WHERE ?",
+                            [{quantity: newQTY},{item_ID: response.inventoryID}],
+                            function(err, invRes) {
+                                if (err) throw err
+                                // print a confirmation for the user
+                                console.log(`Quantity of ${record[0].product_name} updated to ${newQTY}`)
+                                // throw back to the main menu of the application
+                                managerMenu()
+                            })
+                        })
+                    })   
+            }
+            else managerMenu()
+        })     
     })
 }
 

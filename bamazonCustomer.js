@@ -96,12 +96,14 @@ const buyProduct = (prod_ID, quantity) => {
             if (record[0].quantity >= quantity) {
                 let newQty = record[0].quantity - quantity
                 let purchCost = quantity * record[0].price
+                console.log(quantity)
                 // update the database record to reflect the new quantity, and record the sale as 
                 // a number and as total dollars
                 connection.query("UPDATE products SET ? WHERE ?",
-                    [{quantity: newQty, product_sales: purchCost },
-                     {item_ID: prod_ID},
-                     {num_sales: quantity} ],
+                    // update these columns with this data
+                    [{quantity: newQty, product_sales: purchCost, num_sales: quantity },
+                        // where you find this item_id
+                     {item_ID: prod_ID}],
                      function(err,purchRes) {
                         if (err) throw err
                         console.log(`Your total for this purchase will be $${purchCost}.00.`)
@@ -111,7 +113,23 @@ const buyProduct = (prod_ID, quantity) => {
                 // message if there is not sufficient quantity for the order
                 console.log("Sorry, there is not enough inventory to fill that order.")
             }
-            // go back to the start of the program
-        start()
+            // ask the user if they would like to make another purchase:
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    message: 'Would you like to make another purchase?',
+                    name: 'confirm'
+                }
+            ]).then(anotherPurchase => {
+                // if they answer yes, go back to the start of the program
+                if (anotherPurchase.confirm) start()
+                else {
+                    // otherwise end the program
+                    console.log('Goodbye!')
+                    process.exit()
+                }
+            })
+            
+        
         })
 }

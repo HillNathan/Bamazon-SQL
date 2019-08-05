@@ -121,31 +121,37 @@ const updateOverhead = () => {
             tableArray = []
         })// console log the table.
         console.log(table.toString());
-        // prompt the user for the department they would like to update
+        console.log('TYPE ID="0" TO EXIT')
+        // prompt the user for the department they would like to update, 0 to go back to the main menu
         inquirer.prompt([
             {
                 type: 'input',
                 message: 'Which Department do you want to update?',
                 name: 'dept',
                 validate: common.validateNum
-            },
-            {
-                type: 'input',
-                message: 'What are the new overhead costs?',
-                name: 'costs',
-                validate: common.validateNum
-            }]).then (update => {
-                // run mySQL query to update the appropriate record with the new costs
-                connection.query("UPDATE departments SET ? WHERE ?", 
-                [{overhead_costs: update.costs},{department_id: update.dept}], 
-                function(err, results)  {
-                    if (err) throw err
-                    // console log a confirmation message for the user
-                    console.log(`Deparment ID ${update.dept} with overhead costs ${update.costs}.`)
-                    // go back to the main menu
-                    supervisorMenu()
-                } )
-            })
+            }]).then(update => {
+                if (update.dept > 0) {
+                inquirer.prompt([
+                    {
+                        type: 'input',
+                        message: 'What are the new overhead costs?',
+                        name: 'costs',
+                        validate: common.validateNum
+                    }]).then (update2 => {
+                        // run mySQL query to update the appropriate record with the new costs
+                            connection.query("UPDATE departments SET ? WHERE ?", 
+                            [{overhead_costs: update2.costs},{department_id: update.dept}], 
+                            function(err, results)  {
+                                if (err) throw err
+                                // console log a confirmation message for the user
+                                console.log(`Deparment ID ${update.dept} with overhead costs ${update2.costs}.`)
+                                // go back to the main menu
+                                supervisorMenu()
+                            } )
+                    })
+                } 
+                else supervisorMenu()
+        })
     })
 }
 
