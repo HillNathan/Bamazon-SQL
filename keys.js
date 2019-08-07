@@ -1,2 +1,2 @@
 exports.mysql = 
-    { password: process.env.ROOT_PASSWORD} ;
+    { password: process.env.ROOT_PASSWORD } ;

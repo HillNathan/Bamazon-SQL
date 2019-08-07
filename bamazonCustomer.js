@@ -5,6 +5,14 @@ require("dotenv").config()
 const keys = require("./keys.js")
 const common = require("./common.js")
 const Table = require('cli-table')
+const SQL = require('./connection.js')
+
+// let firstTime = false
+// console.log(SQL)
+
+
+
+// const connection2 = MysqlConnection()
 
 const connection = mysql.createConnection({
     host: "localhost",
@@ -20,11 +28,12 @@ const connection = mysql.createConnection({
     database: "bamazon"
   });
 
+
   // initiate the database connection
 connection.connect(function(err,res) {
     if (err) throw err
     // as long as there are no errors, start the app
-    else start()
+    start()
 })
 
 const start = () => {
@@ -107,29 +116,33 @@ const buyProduct = (prod_ID, quantity) => {
                      function(err,purchRes) {
                         if (err) throw err
                         console.log(`Your total for this purchase will be $${purchCost}.00.`)
+                        doAnother()
                      })
             }
             else {
                 // message if there is not sufficient quantity for the order
                 console.log("Sorry, there is not enough inventory to fill that order.")
+                doAnother()
             }
-            // ask the user if they would like to make another purchase:
-            inquirer.prompt([
-                {
-                    type: 'confirm',
-                    message: 'Would you like to make another purchase?',
-                    name: 'confirm'
-                }
-            ]).then(anotherPurchase => {
-                // if they answer yes, go back to the start of the program
-                if (anotherPurchase.confirm) start()
-                else {
-                    // otherwise end the program
-                    console.log('Goodbye!')
-                    process.exit()
-                }
-            })
-            
-        
+            // ask the user if they would like to make another purchase:            
         })
+}
+
+const doAnother = () => {
+    inquirer.prompt([
+        {
+            type: 'confirm',
+            message: 'Would you like to make another purchase?',
+            name: 'confirm'
+        }
+    ]).then(anotherPurchase => {
+        // if they answer yes, go back to the start of the program
+        if (anotherPurchase.confirm) start()
+        else {
+            // otherwise end the program
+            console.log('Goodbye!')
+            process.exit()
+        }
+    })
+
 }

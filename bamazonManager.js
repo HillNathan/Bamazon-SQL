@@ -25,7 +25,7 @@ const choiceArr = ['View Products for Sale', 'View Low Inventory', 'Add to Inven
 connection.connect(function(err,res) {
     if (err) throw err
     // as long as there are no errors, start the app
-    else managerMenu()
+    managerMenu()
 })
 
 const managerMenu = () => {

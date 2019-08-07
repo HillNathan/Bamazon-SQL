@@ -28,7 +28,7 @@ const choiceArr = [ 'View Product Sales','View Product Sales by Department', 'Up
 connection.connect(function(err,res) {
     if (err) throw err
     // If we have a good connection, call the main menu function
-    else supervisorMenu()
+    supervisorMenu()
 })
 
 // Main menu function. 
