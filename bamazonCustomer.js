@@ -5,38 +5,19 @@ require("dotenv").config()
 const keys = require("./keys.js")
 const common = require("./common.js")
 const Table = require('cli-table')
-const SQL = require('./connection.js')
+const myConnection = require('./connection.js')
 
-// let firstTime = false
-// console.log(SQL)
+// connect to the database
+const connection = myConnection.getConnection('localhost', 3306, 'root', keys.mysql.password, 'bamazon')
 
-
-
-// const connection2 = MysqlConnection()
-
-const connection = mysql.createConnection({
-    host: "localhost",
-  
-    // Your port; if not 3306
-    port: 3306,
-  
-    // Your username
-    user: "root",
-  
-    // Your password - hidden in the .env file
-    password: keys.mysql.password,
-    database: "bamazon"
-  });
-
-
-  // initiate the database connection
-connection.connect(function(err,res) {
+// initiate the database connection
+connection.connect(function(err) {
     if (err) throw err
-    // as long as there are no errors, start the app
+    console.log('connection established!')
     start()
 })
 
-const start = () => {
+function start() {
     // initial query simply selects all items from products
     connection.query("SELECT * FROM products", 
     function(err,res) {

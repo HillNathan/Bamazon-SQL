@@ -5,22 +5,12 @@ require("dotenv").config()
 const keys = require("./keys.js")
 const common = require("./common.js")
 const Table = require('cli-table')
+const myConnection = require('./connection.js')
 
 let loginAttempts = 0
 
-const connection = mysql.createConnection({
-    host: "localhost",
-  
-    // Your port; if not 3306   
-    port: 3306,
-  
-    // Your username
-    user: "root",
-  
-    // Your password - stored in .env file
-    password: keys.mysql.password,
-    database: "bamazon"
-});
+// connect to the database
+const connection = myConnection.getConnection('localhost', 3306, 'root', keys.mysql.password, 'bamazon')
 
 // array of choices for the inquirer menu, and for the associated switch case statement to parse that input
 const choiceArr = [ 'View Product Sales','View Product Sales by Department', 'Update Overhead Costs', 

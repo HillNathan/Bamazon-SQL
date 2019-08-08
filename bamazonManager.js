@@ -4,22 +4,12 @@ const mysql = require('mysql')
 require("dotenv").config()
 const keys = require("./keys.js")
 const common = require("./common.js")
+const myConnection = require('./connection.js')
 
 let loginAttempts = 0
 
-const connection = mysql.createConnection({
-    host: "localhost",
-  
-    // Your port; if not 3306   
-    port: 3306,
-  
-    // Your username
-    user: "root",
-  
-    // Your password - hidden in the .env file
-    password: keys.mysql.password,
-    database: "bamazon"
-});
+// connect to the database
+const connection = myConnection.getConnection('localhost', 3306, 'root', keys.mysql.password, 'bamazon')
 // set up the choices array for the inquirer
 const choiceArr = ['View Products for Sale', 'View Low Inventory', 'Add to Inventory', 'Add New Product', 'EXIT']
 
