@@ -6,6 +6,8 @@ const keys = require("./keys.js")
 const common = require("./common.js")
 const Table = require('cli-table')
 
+let loginAttempts = 0
+
 const connection = mysql.createConnection({
     host: "localhost",
   
@@ -22,13 +24,13 @@ const connection = mysql.createConnection({
 
 // array of choices for the inquirer menu, and for the associated switch case statement to parse that input
 const choiceArr = [ 'View Product Sales','View Product Sales by Department', 'Update Overhead Costs', 
-                    'Add New Department', 'EXIT']
+                    'Add New Department', 'Add a Manager', 'EXIT']
 
 // check the database connection. 
 connection.connect(function(err,res) {
     if (err) throw err
     // If we have a good connection, call the main menu function
-    supervisorMenu()
+    supervisorLogin()
 })
 
 // Main menu function. 
@@ -57,6 +59,8 @@ const supervisorMenu = () => {
             case choiceArr[3] :
                 return addDepartment()
             case choiceArr[4] :
+                return addManager()
+            case choiceArr[5] :
                 console.log("Goodbye!!!")
                 return process.exit()
             default:
@@ -223,4 +227,74 @@ const viewProductSales = () => {
         // go back to the main menu
         supervisorMenu()
     })
+}
+
+const supervisorLogin = () => {
+    console.log('+--------------------------------------------------+')
+    console.log('|   Please log in to continue:                     |')
+    console.log('+--------------------------------------------------+')
+
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Username:',
+            name: 'username'
+        },
+        {
+            type: 'password',
+            message: 'Password:',
+            name: 'password'
+        }
+    ]).then(login => {
+        loginAttempts++
+        if (login.username === keys.supervisor.username && login.password === keys.supervisor.password) {
+            console.log('Welcome, Director Fury')
+            supervisorMenu()
+        }
+        else {
+            console.log('Login failed. Please try again.')
+            if (loginAttempts > 4) process.exit()
+            else supervisorLogin()
+        }
+    })
+}
+
+const addManager = () => {
+    console.log("\nADD A MANAGER")
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Enter New Manager Login:',
+            name: 'manager_login'
+        },
+        {
+            type: 'input',
+            message: 'Enter an initial password',
+            name: 'manager_password'
+        }]).then(newUser => {
+            // display the collected information, and ask the user to confirm the info
+            console.log('===============================================')
+            console.log(` New Login: ${newUser.manager_login}`)
+            console.log(` Initial Password: ${newUser.manager_password}`)
+            console.log('===============================================')
+            inquirer.prompt([
+                {
+                    type: 'confirm',
+                    message: 'Is this information correct?',
+                    default: 'Yes',
+                    name: 'confirmation'
+                }]).then(confirm => {
+                    // if we get a positive 
+                    if (confirm.confirmation) {
+                        connection.query("INSERT INTO managers SET ?",
+                        newUser, function(err,res) {
+                            if (err) throw err
+                            // console log a confirmation message
+                            console.log (res.affectedRows + " managers added.")
+                            supervisorMenu()
+                        })
+                    }
+                })
+                
+        })
 }

@@ -5,6 +5,8 @@ require("dotenv").config()
 const keys = require("./keys.js")
 const common = require("./common.js")
 
+let loginAttempts = 0
+
 const connection = mysql.createConnection({
     host: "localhost",
   
@@ -25,7 +27,7 @@ const choiceArr = ['View Products for Sale', 'View Low Inventory', 'Add to Inven
 connection.connect(function(err,res) {
     if (err) throw err
     // as long as there are no errors, start the app
-    managerMenu()
+    managerLogin()
 })
 
 const managerMenu = () => {
@@ -224,3 +226,40 @@ const managerDisplay = (productArray) => {
     console.log('+----+-------------------------+--------+----------+')
 }
 
+const managerLogin = () => {
+    console.log('+--------------------------------------------------+')
+    console.log('|   Please log in to continue:                     |')
+    console.log('+--------------------------------------------------+')
+
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'Username:',
+            name: 'username'
+        },
+        {
+            type: 'password',
+            message: 'Password:',
+            name: 'password'
+        }
+    ]).then(login => {
+        loginAttempts++
+        connection.query("SELECT manager_login, manager_password FROM managers WHERE ?",
+        {manager_login: login.username},
+        function(err,res) {
+            if (err) throw err
+            if (res.length > 0) {
+                if(res[0].manager_password === login.password) { 
+                    console.log ('login successful')
+                    if (login.username === 'bbanner') console.log('Welcome strongest Avenger.')
+                    managerMenu()
+                }
+                else {
+                    console.log('login failed.')
+                    if (loginAttempts > 4) process.exit()
+                    else managerLogin()
+                }
+            }
+        })
+    })
+}
