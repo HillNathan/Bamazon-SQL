@@ -92,8 +92,8 @@ const addInventory = () => {
             message: 'Please enter the product ID to add inventory:',
             name: 'inventoryID',
             validate: common.validateNum
-        }]).then(response => {
-            if (response.inventoryID > 0) {
+        }]).then(response1 => {
+            if (response1.inventoryID > 0) {
                 inquirer.prompt([
                     {
                         type: 'input',
@@ -105,16 +105,17 @@ const addInventory = () => {
                 ]).then(response => {
                     // run a mySQL query to pull the record indicated by the user
                     connection.query("SELECT * FROM products WHERE ?",
-                    {item_ID: response.inventoryID}, function(err,record) {
+                    {item_ID: response1.inventoryID}, function(err,record) {
                         if (err) throw err
                         let newQTY = parseInt(record[0].quantity) + parseInt(response.newQuantity)
                         // run an update query to reflect the new inventory number
                         connection.query ("UPDATE products SET ? WHERE ?",
-                            [{quantity: newQTY},{item_ID: response.inventoryID}],
+                            [{quantity: newQTY},{item_ID: response1.inventoryID}],
                             function(err, invRes) {
                                 if (err) throw err
                                 // print a confirmation for the user
                                 console.log(`Quantity of ${record[0].product_name} updated to ${newQTY}`)
+                                console.log(invRes.affectedRows + " records updated.")
                                 // throw back to the main menu of the application
                                 managerMenu()
                             })
@@ -125,7 +126,6 @@ const addInventory = () => {
         })     
     })
 }
-
 
 const addNewProduct = () => {
     // run a 4-step inquirer prompt chain to get new product information from the user
@@ -171,6 +171,10 @@ const addNewProduct = () => {
                 //    table. The response object is set up so that it can be inserted as is. The sales fields
                 //    are set to NOT NULL so they will autofill with 0 as a value.
                 if (confirm.confirmation) {
+                    newProd = {
+                        ...newProd,
+                        num_sales: 0,
+                        product_sales: 0 }
                     connection.query("INSERT INTO products SET ?",
                     newProd, function(err,res) {
                         if (err) throw err
